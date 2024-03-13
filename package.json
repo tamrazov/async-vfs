@@ -4,14 +4,19 @@
   "description": "async virtual file-system",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "cypress:open": "cypress open"
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/jest": "^29.5.12",
     "@types/node": "^20.11.25",
     "ts-node": "^10.9.2",
     "tslib": "^2.6.2",
     "typescript": "^5.4.2"
-  }
+  },
+  "dependencies": {
+    "cypress": "^13.6.6"
+  },
+  "type": "module"
 }

@@ -19,7 +19,7 @@ type TreeNode = {
     directoryContents: Tree | null
 }
 
-type Tree = Record<NodeName, TreeNode> 
+export type Tree = Record<NodeName, TreeNode> 
 
 const test: Tree = {
     'root' : {
@@ -52,7 +52,12 @@ const test: Tree = {
     }
 }
 
-function mkroot(): Tree {
+/**
+ * Creates and returns the root directory in the tree.
+ * 
+ * @returns The tree structure with the root directory
+ */
+export function mkroot(): Tree {
     return ({
         'root': {
             entity: {
@@ -74,19 +79,28 @@ function __isFile(entity: Dir | FileItem): entity is FileItem {
 function __isDir(entity: Dir | FileItem): entity is Dir {
     return entity.entityType === 'dir' ? true : false
 }
-// we need to pass every time select node of the tree to find, whether there is a new child node
-// if no child node is found we should create a error message
-function __isValidPath(path: NodeName[], dir: Tree, index: number = 0): boolean {
+/**
+ * Checks if the given path is valid within the tree.
+ * 
+ * @param path - The path to validate
+ * @param dir - The directory tree to traverse
+ * @param index - The current index in the path
+ * @returns A boolean indicating whether the path is valid
+ */
+export function __isValidPath(path: NodeName[], dir: Tree, index: number = 0): boolean {
+    
     let pathIsValid = false
 
     let currentPath = path[index] // in 1st round root
     if (!currentPath) return pathIsValid
 
     const tempDir = dir[currentPath]
+    
     if (tempDir) { // there is definitely root in 1st round
         pathIsValid = true
 
-        const newDir = tempDir.directoryContents
+        const newDir = tempDir?.directoryContents
+        
         if (newDir) { // if there is another folder, we call recursive func to dig deeper
             return __isValidPath(path, newDir, index + 1)
         } else if (path[index + 1]) { // there might be no more dir contents, but path suggests that there is, than path is not valid
@@ -135,59 +149,71 @@ mkdir(root, 'asd')
 
 
 function __selectDir(pathStack: NodeName[], tree: Tree) {
-
+    
     let currentNode = tree
     let latestPath = ''
+    console.log('Current Node:', currentNode)
+    console.log('Latest Path:', latestPath)
+    console.log('Target Path:', pathStack)
+
+
     for(const path of pathStack) {
-        const treeNode = currentNode[path]
+        const treeNode = currentNode && currentNode[path]
+
+        console.log('Tree Node:', treeNode)
+
         if (treeNode && __isDir(treeNode.entity)) {
-            treeNode.entity.isInside = true
-            currentNode = { ...treeNode.directoryContents}
+                            console.log('Entity:', treeNode.entity)
+            treeNode.entity.isInside = false
+                            console.log('Entity after setting isInside:', treeNode.entity)
+           if (treeNode.directoryContents) currentNode = { ...treeNode.directoryContents}
+                             console.log('Current Node after updating:', currentNode)
             latestPath = path
+                            console.log('Latest Path updated:', latestPath)
         }
     }
-    const tempNode = currentNode[latestPath]
+    
+    const tempNode = currentNode && currentNode[latestPath]
+    console.log('Temp Node:', tempNode)
 
-    if (!tempNode) return
-
-    const selectedNode = tempNode.entity
-    if (__isDir(selectedNode)) {
-        selectedNode.isInside = true
+    if (!tempNode) {
+        console.log('temp node not found')
+        return
     }
 
+    const selectedNode = tempNode.entity
+    console.log('Selected Node:', selectedNode)
+
+    if (__isDir(selectedNode)) {
+        selectedNode.isInside = true
+        console.log('selectedNode', selectedNode)
+    }
 }
 
 function __getSelectedDir(tree: Tree): TreeNode | null {
     let selectedNode = tree
-    console.log(tree)
 
-    const entries = Object.entries(tree)
+    const entries = Object.entries(tree || {}) 
 
     for (const [key, value] of entries) {
 
         let currentNode = tree[key]
-        // console.log(currentNode)
         if (!currentNode) return null
 
         const directory = currentNode.entity
-        console.log('directory', directory)
         if (__isDir(directory) && directory.isInside) {
-            console.log('we got selected tree node', tree[key])
             return tree[key] || null
         } else if (currentNode && __isDir(directory)){
             return __getSelectedDir(currentNode.directoryContents!)
         } else {
-            console.log('dir couldn\'t be selected')
             return null
         }
     }
-    console.log('we failed in some way')
     return null
 }
 
-function mkdir(tree: Tree, dirName: string) {
+export function mkdir(tree: Tree, dirName: string) {
     
-    console.log('mk dir is called')
     const tempDir: Tree = {
         [dirName] : {
             entity: {
@@ -201,12 +227,12 @@ function mkdir(tree: Tree, dirName: string) {
     }
 
     const selectedNode = __getSelectedDir(tree)
-    console.log('selected node in mkDir', selectedNode)
     if (!selectedNode) return
 
     selectedNode.directoryContents = { ...selectedNode.directoryContents, ...tempDir}
+    console.log('updated tree:', tree)
+    console.log('updated tree[qwe]:', tree['root']?.directoryContents)
 
-    console.log('tree after writing new dir', root['root']?.directoryContents, tree)
 }
 
 
@@ -226,24 +252,12 @@ function mkfile(fileName: string, tree: Tree,) {
     }
 
     const selectedNode = __getSelectedDir(tree)
-    console.log('selected node in mkFile', selectedNode)
     if (!selectedNode) return
 
     selectedNode.directoryContents = { ...selectedNode.directoryContents, ...tempFile}
-    console.log('tree after writing new file', root['root']?.directoryContents, tree)
 
 
 }
-
-
-// mkdir('docs', root, 'root/estc')
-
-
-/*
-    1. create root
-    2. ls -> all contents (root.print)
-    3. cd -> dir 
-*/
 
 
 // }
