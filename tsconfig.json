@@ -1,0 +1,44 @@
+{
+    "compilerOptions": {
+    "allowImportingTsExtensions" : true,
+    "paths": {
+      "@src": ["src"],
+      "@src/*": ["src/*"],
+    },
+      "target": "es5",
+      "lib": [
+        "dom",
+        "dom.iterable",
+        "ESNext"
+      ],
+      "allowJs": true,
+      "skipLibCheck": true,
+      "esModuleInterop": true,
+      "allowSyntheticDefaultImports": true,
+      "strict": true,
+      "forceConsistentCasingInFileNames": true,
+      "module": "ESNext",
+      "moduleResolution": "node",
+      "resolveJsonModule": true,
+      "isolatedModules": true,
+      "noEmit": true,
+      "jsx": "react-jsx",
+      "baseUrl": ".",
+      "noFallthroughCasesInSwitch": true,
+      "noUncheckedIndexedAccess": true,
+      "types": ["@types/jest"],
+    },
+    "ts-node": {
+      "transpileOnly": true,
+      // Tell ts-node CLI to install the --loader automatically
+      "esm": true,
+      "compilerOptions": {
+        "module": "ESNext",
+        "esModuleInterop": true
+      },
+    },
+    // "include": [
+    //   "src/**/*.ts",
+    // ]
+  }
+  
