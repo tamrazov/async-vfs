@@ -1,5 +1,10 @@
 {
     "compilerOptions": {
+    "allowImportingTsExtensions" : true,
+    "paths": {
+      "@src": ["src"],
+      "@src/*": ["src/*"],
+    },
       "target": "es5",
       "lib": [
         "dom",
@@ -24,8 +29,16 @@
       "types": ["@types/jest"],
     },
     "ts-node": {
+      "transpileOnly": true,
       // Tell ts-node CLI to install the --loader automatically
-      "esm": true
-  }
+      "esm": true,
+      "compilerOptions": {
+        "module": "ESNext",
+        "esModuleInterop": true
+      },
+    },
+    // "include": [
+    //   "src/**/*.ts",
+    // ]
   }
   

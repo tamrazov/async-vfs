@@ -1,6 +1,7 @@
-import { Tree, mkroot } from "../../index";
-import { __isValidPath } from "../../index";
-import { mkdir } from '../../index';
+import { Tree } from "src/types"
+import { mkroot } from "src/index"
+import { __isValidPath } from "src/helpers"
+import { mkdir } from "src/index"
 
 describe("mkroot Test", () => {
   it("Creates the root directory", () => {
@@ -13,9 +14,9 @@ describe("mkroot Test", () => {
         },
         directoryContents: null,
       },
-    });
-  });
-});
+    })
+  })
+})
 
 describe("__isValidPath", () => {
   const tree: Tree = {
@@ -45,28 +46,28 @@ describe("__isValidPath", () => {
         },
       },
     },
-  };
+  }
 
   it("Valid path where each directory exists", () => {
     cy.wrap(__isValidPath(["root", "folder1", "folder2"], tree)).should(
       "equal",
       true
-    );
-  });
+    )
+  })
 
   it("Invalid path where a directory does not exist", () => {
     cy.wrap(
       __isValidPath(["root", "folder1", "nonExistentFolder"], tree)
-    ).should("equal", false);
-  });
+    ).should("equal", false)
+  })
 
   it("Valid path where the last directory is reached", () => {
     cy.wrap(__isValidPath(["root", "folder1", "folder2"], tree)).should(
       "equal",
       true
-    );
-  });
-});
+    )
+  })
+})
 
 
 
