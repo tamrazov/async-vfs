@@ -17,30 +17,29 @@ export function __isDir(entity: Dir | FileItem): entity is Dir {
  * @returns A boolean indicating whether the path is valid
  */
 export function __isValidPath(path: NodeName[], dir: Tree, index: number = 0): boolean {
-    
   let pathIsValid = false
+  let currentDir = dir
 
-  const currentPath = path[index] // in 1st round root
-  if (!currentPath) return pathIsValid
+  for (let i = index; i < path.length; i++) {
+    const currentPath = path[i]
+    if (!currentPath) return false
 
-  const tempDir = dir[currentPath]
-    
-  if (tempDir) { // there is definitely root in 1st round
-    pathIsValid = true
+    const tempDir = currentDir[currentPath]
 
-    const newDir = tempDir?.directoryContents
-        
-    if (newDir) { // if there is another folder, we call recursive func to dig deeper
-      return __isValidPath(path, newDir, index + 1)
-    } else if (path[index + 1]) { 
-    // there might be no more dir contents, but path suggests that there is, than path is not valid
-      pathIsValid = false
-    } else { // if there is no more dir contents, we are, where we need to be
-      pathIsValid = true
+    if (!tempDir) {
+      return false
     }
-  } else {
-    pathIsValid = false
+
+    pathIsValid = true
+    if (tempDir && tempDir.directoryContents) {
+      currentDir = tempDir.directoryContents
+    }
+
+    if (!currentDir && i < path.length - 1) {
+      return false
+    }
   }
+
   return pathIsValid
 }
 
@@ -73,8 +72,7 @@ export function __selectDir(pathStack: NodeName[], tree: Tree) {
   console.log("Temp Node:", tempNode)
 
   if (!tempNode) {
-    console.log("temp node not found")
-    return
+    throw new Error("Selected node not found")
   }
 
   const selectedNode = tempNode.entity
@@ -93,7 +91,9 @@ export function __getSelectedDir(tree: Tree): TreeNode | null {
   for (const [key] of entries) {
 
     const currentNode = tree[key]
-    if (!currentNode) return null
+    if (!currentNode) {
+      throw new Error("Selected node not found")
+    }
 
     const directory = currentNode.entity
     if (__isDir(directory) && directory.isInside) {
@@ -105,4 +105,13 @@ export function __getSelectedDir(tree: Tree): TreeNode | null {
     }
   }
   return null
+}
+
+export function validateName(name: string): void {
+  if (!name || name.trim() === "") {
+    throw new Error("Name cannot be empty")
+  }
+  if (/[^a-zA-Z0-9_\-.]/.test(name)) {
+    throw new Error("Name contains invalid characters")
+  }
 }
