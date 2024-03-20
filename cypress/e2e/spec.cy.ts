@@ -1,7 +1,7 @@
 import { Tree } from "src/types"
-import { mkroot } from "src/index"
-import { __isValidPath } from "src/helpers"
-import { mkdir } from "src/index"
+import { mkroot, cd } from "@src"
+import { __isValidPath, __getSelectedDir } from "src/helpers"
+import { mkdir, mkfile } from "@src"
 
 describe("mkroot Test", () => {
   it("Creates the root directory", () => {
@@ -69,30 +69,107 @@ describe("__isValidPath", () => {
   })
 })
 
+describe("mkdir", () => {
+  const tree: Tree = mkroot()
 
+  it("should add a new directory to the root directory", () => {
+    mkdir(tree, "newDir")
+    cy.wrap(tree["root"]?.directoryContents).should("have.property", "newDir")
+    cy.wrap(tree["root"]?.directoryContents?.newDir?.entity).should(
+      "have.property",
+      "dirName",
+      "newDir"
+    )
+  })
 
-// describe('mkdir', () => {
-//     let tree: Tree = mkroot()
+  it("should add a new directory to a selected directory", () => {
+    cy.on("fail", (err) => {
+      expect(err.message).to.include("Selected node not found")
+      return false
+    })
+    cd(tree, "root")
+    mkdir(tree, "selectedDir")
+    cy.wrap(tree["root"]?.directoryContents).should(
+      "have.property",
+      "selectedDir"
+    )
+    cd(tree, "root/selectedDir")
+    mkdir(tree, "newDir")
+    cy.wrap(
+      tree["root"]?.directoryContents?.selectedDir?.directoryContents
+    ).should("have.property", "newDir")
+  })
 
-//     it('should add a new directory to an existing tree', () => {
-//         // cy.wrap(tree).should('exist')
-//         console.log('tree', tree)
-//         mkdir(tree, 'newDir');
-//         cy.wrap(tree['root']?.directoryContents).should('include', 'newDir')
-//         // expect(tree['root']?.directoryContents['newDir'].entity.dirName).toBe('newDir');
-//     });
+  it("should not add a new directory when no directory is selected", () => {
+    cy.on("fail", (err) => {
+      expect(err.message).to.equal("No directory is selected")
+      return false
+    })
+    mkdir(tree, "newDir")
+  })
+})
 
-//     // it('should add a new directory to a selected directory', () => {
-//     //     mkdir(tree, 'selectedDir');
-//     //     mkdir(tree, 'newDir');
-//     //     // expect(tree['root']?.directoryContents['selectedDir'].directoryContents).toHaveProperty('newDir');
-//     // });
+describe("mkfile", () => {
+  const tree: Tree = mkroot()
 
-//     // it('should handle the case when no directory is selected', () => {
-//     //     // const consoleSpy = jest.spyOn(console, 'log').mockImplementation();
-//     //     mkdir(tree, 'newDir');
-//     //     // expect(consoleSpy).toHaveBeenCalledWith('updated tree:', tree);
-//     //     // expect(consoleSpy).toHaveBeenCalledWith('updated tree[qwe]:', undefined);
-//     //     // consoleSpy.mockRestore();
-//     // });
-// });
+  it("should add a new file to the root directory", () => {
+    cy.on("fail", (err) => {
+      expect(err.message).to.equal("No directory is selected")
+      return false
+    })
+    mkfile("newFile.txt", tree)
+    cy.wrap(tree["root"]?.directoryContents).should(
+      "have.property",
+      "newFile.txt"
+    )
+  })
+
+  it("should add a new file to a selected directory", () => {
+    cd(tree, "root")
+    mkdir(tree, "selectedDir")
+    cd(tree, "root/selectedDir")
+    cy.on("fail", (err) => {
+      expect(err.message).to.equal("No directory is selected")
+      return false
+    })
+    mkfile("newFile.txt", tree)
+    cy.wrap(
+      tree["root"]?.directoryContents?.selectedDir?.directoryContents
+    ).should("have.property", "newFile.txt")
+  })
+
+  it("should not add a new file when no directory is selected", () => {
+    cy.on("fail", (err) => {
+      expect(err.message).to.equal("No directory is selected")
+      return false
+    })
+    mkfile("newFile.txt", tree)
+  })
+})
+
+describe("cd", () => {
+  const tree: Tree = mkroot()
+
+  it("should change to the root directory", () => {
+    cd(tree, "root")
+    const selectedNode = __getSelectedDir(tree)
+    cy.wrap(selectedNode?.entity).should("have.property", "dirName", "root")
+    cy.wrap(selectedNode?.entity).should("have.property", "isInside", true)
+  })
+
+  it("should change to a subdirectory", () => {
+    mkdir(tree, "subDir")
+    cd(tree, "root/subDir")
+    const selectedNode = __getSelectedDir(tree)
+    cy.wrap(selectedNode?.entity).should("have.property", "dirName", "subDir")
+    cy.wrap(selectedNode?.entity).should("have.property", "isInside", true)
+  })
+
+  it("should not change directory for an invalid path", () => {
+    cy.on("fail", (err) => {
+      expect(err.message).to.equal("Invalid file path")
+      return false
+    })
+    cd(tree, "root/invalidDir")
+  })
+})
